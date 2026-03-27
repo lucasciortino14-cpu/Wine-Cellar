@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wine Master v8.2 | Flash 3.1 Lite</title>
+    <style>
+        :root { --maroon: #800020; --gold: #D4AF37; --bg: #ffffff; --light: #f8f9fa; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--light); margin: 0; padding-bottom: 120px; color: #1a1a1a; -webkit-tap-highlight-color: transparent; }
+        
+        /* Premium Header */
+        .dashboard { background: var(--maroon); color: white; padding: 45px 20px 25px; text-align: center; border-radius: 0 0 40px 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .val-label { font-size: 0.7em; opacity: 0.8; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; }
+        .total-val { font-size: 2.8em; font-weight: 900; margin: 5px 0; letter-spacing: -1px; }
+
+        .container { padding: 15px; max-width: 480px; margin: auto; }
+        
+        /* High-End Scanner */
+        .cam-wrap { position: relative; border-radius: 35px; overflow: hidden; background: #000; aspect-ratio: 1; border: 6px solid white; box-shadow: 0 20px 50px rgba(0,0,0,0.1); margin-top: -50px; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        .btn-scan { background: var(--maroon); color: white; border: none; padding: 18px 45px; border-radius: 40px; font-weight: bold; position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 10; box-shadow: 0 10px 20px rgba(0,0,0,0.4); cursor: pointer; font-size: 1em; }
+
+        /* Luxury Wine Card */
+        .card { background: white; border-radius: 28px; padding: 22px; margin-bottom: 18px; border: 1px solid #efefef; box-shadow: 0 4px 15px rgba(0,0,0,0.03); transition: 0.2s; }
+        .wine-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .wine-title { font-size: 1.25em; font-weight: 800; color: var(--maroon); display: block; line-height: 1.2; }
+        .wine-sub { color: #999; font-size: 0.85em; margin-top: 4px; display: block; }
+        .wine-price { font-weight: 900; color: var(--maroon); font-size: 1.2em; }
+
+        /* Quantity Controls (RESTORED) */
+        .qty-row { display: flex; align-items: center; gap: 15px; background: #fdfdfd; padding: 10px 15px; border-radius: 15px; border: 1px solid #f0f0f0; width: fit-content; }
+        .qty-btn { background: #eee; border: none; width: 32px; height: 32px; border-radius: 50%; font-weight: bold; font-size: 1.2em; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .qty-val { font-weight: 800; min-width: 20px; text-align: center; }
+
+        /* Vector Map - Matching Uploaded Image */
+        .map-section { width: 100%; height: 220px; background: #fff; margin: 20px 0; border-radius: 20px; display: flex; align-items: center; justify-content: center; position: relative; border: 1px solid #f5f5f5; overflow: hidden; }
+        .vector-img { height: 85%; width: 85%; object-fit: contain; }
+        .region-badge { position: absolute; bottom: 15px; right: 15px; background: var(--maroon); color: white; padding: 6px 14px; border-radius: 12px; font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Detail Grid */
+        .details { display: none; padding-top: 20px; border-top: 1px solid #f5f5f5; margin-top: 20px; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .stat-box { background: #fafafa; padding: 12px; border-radius: 15px; border: 1px solid #f0f0f0; }
+        .stat-box b { display: block; font-size: 0.65em; color: #bbb; text-transform: uppercase; margin-bottom: 4px; }
+        .stat-box span { font-weight: 700; font-size: 0.85em; }
+
+        /* Modal */
+        #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; padding: 20px; backdrop-filter: blur(10px); }
+        .modal-box { background: white; border-radius: 35px; padding: 30px; margin-top: 20%; max-width: 400px; margin: auto; }
+        input { width: 100%; padding: 16px; margin: 10px 0; border: 2px solid #f5f5f5; border-radius: 18px; font-size: 1em; box-sizing: border-box; outline: none; }
+        input:focus { border-color: var(--maroon); }
+
+        /* Nav */
+        .nav { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: white; display: flex; border-radius: 35px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); padding: 6px; width: 85%; max-width: 350px; z-index: 200; }
+        .tab { flex: 1; text-align: center; padding: 14px; border-radius: 30px; color: #ccc; font-weight: 800; font-size: 0.75em; cursor: pointer; transition: 0.3s; }
+        .tab.active { background: var(--maroon); color: white; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="val-label" id="val-label">Cellar Net Worth</div>
+    <div class="total-val" id="total-val">€0.00</div>
+</div>
+
+<div class="container">
+    <div class="cam-wrap">
+        <video id="video" autoplay playsinline></video>
+        <button class="btn-scan" onclick="scan()">SCAN LABEL</button>
+    </div>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <div id="list" style="margin-top:40px;"></div>
+</div>
+
+<div id="modal">
+    <div class="modal-box">
+        <h2 style="margin:0 0 15px 0; color:var(--maroon)">Label Analyzed</h2>
+        <input id="m-name" type="text" placeholder="Wine Name">
+        <div style="display:flex; gap:10px;">
+            <input id="m-year" type="text" placeholder="Year" style="flex:1">
+            <input id="m-qty" type="number" value="1" style="flex:1">
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:20px;">
+            <button onclick="save('cellar')" style="background:var(--maroon); color:white; border:none; padding:18px; border-radius:20px; font-weight:bold;">🏠 Cellar</button>
+            <button onclick="save('wishlist')" style="background:var(--gold); color:white; border:none; padding:18px; border-radius:20px; font-weight:bold;">✨ Wishlist</button>
+        </div>
+        <button onclick="closeModal()" style="width:100%; background:none; border:none; color:#bbb; margin-top:20px; cursor:pointer">Dismiss</button>
+    </div>
+</div>
+
+<div class="nav">
+    <div class="tab active" onclick="setTab('cellar', this)">MY CELLAR</div>
+    <div class="tab" onclick="setTab('wishlist', this)">WISHLIST</div>
+</div>
+
+<script>
+    const API_URL = "http://127.0.0.1:8000/analyze";
+    let db = JSON.parse(localStorage.getItem('wine_db_v8_2')) || { cellar: [], wishlist: [] };
+    let currentTab = 'cellar', lastScan = null;
+
+    async function start() {
+        const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        document.getElementById('video').srcObject = s;
+        render();
+    }
+
+    async function scan() {
+        const v = document.getElementById('video'), c = document.getElementById('canvas');
+        c.width = v.videoWidth; c.height = v.videoHeight;
+        c.getContext('2d').drawImage(v, 0, 0);
+        document.querySelector('.total-val').innerText = "...";
+        const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.8));
+        const fd = new FormData(); fd.append("file", blob);
+        try {
+            const res = await fetch(API_URL, { method: "POST", body: fd });
+            lastScan = await res.json();
+            document.getElementById('m-name').value = lastScan.name;
+            document.getElementById('m-year').value = lastScan.year;
+            document.getElementById('modal').style.display = 'block';
+            render();
+        } catch (e) { alert("Check Python Terminal for 400 Error"); render(); }
+    }
+
+    function save(type) {
+        const entry = { ...lastScan, name: document.getElementById('m-name').value, year: document.getElementById('m-year').value, qty: parseInt(document.getElementById('m-qty').value)||1, id: Date.now() };
+        db[type].unshift(entry);
+        localStorage.setItem('wine_db_v8_2', JSON.stringify(db));
+        closeModal(); render();
+    }
+
+    function render() {
+        const list = document.getElementById('list');
+        let totalVal = 0; list.innerHTML = "";
+        
+        db[currentTab].forEach(w => {
+            const rowTotal = w.price * (w.qty || 1);
+            totalVal += rowTotal;
+            
+            // MAP LOGIC: SimpleMaps Vector SVG
+            // Uses country ISO code and region name from Flash 3.1 Lite
+            const mapUrl = `https://simplemaps.com/static/svg/country/${w.country}/all/custom.svg?region_color=${encodeURIComponent(w.region)}:800020&default_color=f2f2f2`;
+
+            list.innerHTML += `
+                <div class="card" onclick="const d=document.getElementById('d-${w.id}'); d.style.display=d.style.display==='block'?'none':'block'">
+                    <div class="wine-header">
+                        <div style="flex:1">
+                            <span class="wine-title">${w.name}</span>
+                            <span class="wine-sub">${w.year} • ${w.region}</span>
+                        </div>
+                        <div class="wine-price">€${w.price.toFixed(2)}</div>
+                    </div>
+
+                    ${currentTab === 'cellar' ? `
+                    <div class="qty-row" onclick="event.stopPropagation()">
+                        <button class="qty-btn" onclick="adj(${w.id},-1)">-</button>
+                        <span class="qty-val">${w.qty}</span>
+                        <button class="qty-btn" onclick="adj(${w.id},1)">+</button>
+                    </div>` : ''}
+
+                    <div class="details" id="d-${w.id}">
+                        <div class="map-section">
+                            <div class="region-badge">${w.region}</div>
+                            <img src="${mapUrl}" class="vector-img" onerror="this.src='https://via.placeholder.com/200?text=Map+Pending'">
+                        </div>
+                        
+                        <div class="stat-grid">
+                            <div class="stat-box"><b>Drinking Window</b><span>${w.window}</span></div>
+                            <div class="stat-box"><b>Grape Variety</b><span>${w.grape}</span></div>
+                            <div class="stat-box"><b>Service</b><span>${w.temp} • ${w.decant}</span></div>
+                            <div class="stat-box"><b>ABV</b><span>${w.abv}</span></div>
+                        </div>
+                        
+                        <p style="font-size:0.85em; color:#666; line-height:1.6; background:#f9f9f9; padding:12px; border-radius:12px;">
+                            <b>👃 Nose:</b> ${w.scents}<br>
+                            <b>👅 Palate:</b> ${w.palate}<br>
+                            <b>🍽️ Pairing:</b> ${w.pair}
+                        </p>
+                        
+                        <button onclick="event.stopPropagation(); if(confirm('Delete?')){db[currentTab]=db[currentTab].filter(x=>x.id!==${w.id}); render(); localStorage.setItem('wine_db_v8_2', JSON.stringify(db));}" style="width:100%; border:none; background:none; color:#ccc; font-weight:bold; margin-top:15px; cursor:pointer;">Remove Entry</button>
+                    </div>
+                </div>`;
+        });
+        document.getElementById('total-val').innerText = `€${totalVal.toFixed(2)}`;
+    }
+
+    function adj(id, a) {
+        const item = db.cellar.find(x => x.id === id);
+        if(item) {
+            item.qty += a;
+            if(item.qty <= 0) db.cellar = db.cellar.filter(x => x.id !== id);
+            localStorage.setItem('wine_db_v8_2', JSON.stringify(db));
+            render();
+        }
+    }
+
+    function setTab(t, el) {
+        currentTab = t;
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('val-label').innerText = t.toUpperCase() + " NET WORTH";
+        render();
+    }
+
+    function closeModal() { document.getElementById('modal').style.display = 'none'; }
+    start();
+</script>
+</body>
+</html>
